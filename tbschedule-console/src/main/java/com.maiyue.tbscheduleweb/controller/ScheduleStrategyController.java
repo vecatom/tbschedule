@@ -4,11 +4,25 @@ import com.maiyue.tbscheduleweb.modul.MyScheduleStrategy;
 import com.taobao.pamirs.schedule.ConsoleManager;
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategy;
 import com.taobao.pamirs.schedule.strategy.ScheduleStrategyRunntime;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Controller
+@RequestMapping("/scheduleStrategy")
 public class ScheduleStrategyController {
+
+    @RequestMapping("list")
+    public String toPage(){
+        return "scheduleStrategy/list";
+    }
 
     public List<ScheduleStrategy> list(){
         try {
@@ -22,10 +36,53 @@ public class ScheduleStrategyController {
         return null;
     }
 
+    @GetMapping("edit")
+    public String toEdit(String taskTypeName, ModelMap mp){
+        MyScheduleStrategy mys = new MyScheduleStrategy();
+
+
+        ScheduleStrategy scheduleStrategy = null;
+        try {
+            scheduleStrategy = ConsoleManager.getScheduleStrategyManager().loadStrategy(taskTypeName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        boolean isNew = false;
+//        String actionName = "editScheduleStrategy";
+//        String editSts = "";
+        String ips = "";
+        if (scheduleStrategy != null) {
+//            String[] ipList = scheduleStrategy.getIPList();
+//            for (int i = 0; ipList != null && i < ipList.length; i++) {
+//                if (i > 0) {
+//                    ips = ips + ",";
+//                }
+//                ips = ips + ipList[i];
+//            }
+//            editSts = "style=\"background-color: blue\" readonly=\"readonly\"";
+            BeanUtils.copyProperties(mys,scheduleStrategy);
+            mys.setIPListToIps();
+        } else {
+            scheduleStrategy = new ScheduleStrategy();
+            scheduleStrategy.setStrategyName("");
+            scheduleStrategy.setKind(ScheduleStrategy.Kind.Schedule);
+            scheduleStrategy.setTaskName("");
+            scheduleStrategy.setTaskParameter("");
+            scheduleStrategy.setNumOfSingleServer(0);
+            scheduleStrategy.setAssignNum(2);
+            ips = "127.0.0.1";
+            BeanUtils.copyProperties(mys,scheduleStrategy);
+            mys.setIps(ips);
+        }
+        mp.put("scheduleStrategy",mys);
+        return "scheduleStrategy/edit";
+    }
+
     /**
      * 创建策略
      * @return
      */
+    @PostMapping("save")
     public String create(MyScheduleStrategy scheduleStrategy){
         scheduleStrategy.setIPListToIps();
         try {
@@ -105,7 +162,8 @@ public class ScheduleStrategyController {
      * @param uuid
      * @return
      */
-    public List<ScheduleStrategyRunntime> getRuntime(String strategyName,String uuid ){
+    @RequestMapping("runtime")
+    public String getRuntime(String strategyName, String uuid , ModelMap mp){
         List<ScheduleStrategyRunntime> runntimeList = null;
         if (strategyName != null && strategyName.trim().length() > 0) {
             try {
@@ -123,7 +181,8 @@ public class ScheduleStrategyController {
         } else {
             runntimeList = new ArrayList<ScheduleStrategyRunntime>();
         }
-        return runntimeList;
+        mp.put("list",runntimeList);
+        return "/scheduleStrategy/runtime";
     }
 
 }

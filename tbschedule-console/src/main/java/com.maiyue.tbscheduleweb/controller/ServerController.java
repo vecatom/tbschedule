@@ -3,13 +3,21 @@ package com.maiyue.tbscheduleweb.controller;
 import com.taobao.pamirs.schedule.ConsoleManager;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleServer;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 
 @Controller
+@RequestMapping("server")
 public class ServerController {
+
+
+    @RequestMapping("toServer")
+    public String toServer(ModelMap mp){
+        return "/server/list";
+    }
 
     @RequestMapping("server/list")
     @ResponseBody

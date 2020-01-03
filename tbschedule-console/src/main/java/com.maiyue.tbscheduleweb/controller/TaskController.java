@@ -1,7 +1,7 @@
 package com.maiyue.tbscheduleweb.controller;
 
+import com.maiyue.tbscheduleweb.ajax.AjaxResult;
 import com.maiyue.tbscheduleweb.modul.MyScheduleServer;
-import com.maiyue.tbscheduleweb.modul.MyScheduleStrategy;
 import com.maiyue.tbscheduleweb.modul.MyScheduleTaskType;
 import com.maiyue.tbscheduleweb.modul.MyScheduleTaskTypeRunningInfo;
 import com.taobao.pamirs.schedule.ConsoleManager;
@@ -10,12 +10,71 @@ import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskItem;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskType;
 import com.taobao.pamirs.schedule.taskmanager.ScheduleTaskTypeRunningInfo;
 import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Controller
+@RequestMapping("task")
 public class TaskController {
 
+    @RequestMapping("list")
+    public String toTask(ModelMap mp){
+        List<ScheduleTaskType> list = list();
+        mp.put("list",list);
+        return "/task/list";
+    }
+
+    @RequestMapping("edit")
+    public String toEdit(String taskType,ModelMap mp){
+        MyScheduleTaskType mtt = new MyScheduleTaskType();
+        if(!"-1".equals(taskType)){
+            mtt = getType(taskType);
+            mtt.setEditFlag("create");
+        }else{
+            mtt.setEditFlag("edit");
+        }
+        mp.put("taskType",mtt);
+        return "/task/edit";
+    }
+
+    @RequestMapping("save")
+    @ResponseBody
+    public AjaxResult saveTaskType(MyScheduleTaskType taskType){
+        String editFlag = taskType.getEditFlag();
+        try {
+            if ("edit".equals(editFlag)) {
+                edit(taskType);
+            } else if ("create".equals(editFlag)) {
+                create(taskType);
+            } else {
+                return AjaxResult.filed(404);
+            }
+        }catch (Exception e){
+            return AjaxResult.filed(500);
+        }
+        return AjaxResult.sucess();
+    }
+
+    private MyScheduleTaskType getType(String taskTypeName){
+
+        MyScheduleTaskType mtt = new MyScheduleTaskType();
+
+        try {
+            ScheduleTaskType taskType = ConsoleManager.getScheduleDataManager().loadTaskTypeBaseInfo(taskTypeName);
+            BeanUtils.copyProperties(taskType,mtt);
+            mtt.items2Str();
+            return mtt;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return mtt;
+    }
 
     public List<ScheduleTaskType> list(){
         try {
@@ -25,68 +84,70 @@ public class TaskController {
             e.printStackTrace();
         }
         return null;
+
     }
 
     /**
      * 创建任务
      * @return
      */
-    public String create(MyScheduleTaskType taskType){
+    public void create(MyScheduleTaskType taskType) throws Exception {
 
         ScheduleTaskType scheduleTaskType = init(taskType);
-        try {
-            ConsoleManager.getScheduleDataManager().createBaseTaskType(scheduleTaskType);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        ConsoleManager.getScheduleDataManager().createBaseTaskType(scheduleTaskType);
+
     }
 
     /**
      * 编辑任务
      * @return
      */
-    public String edit(MyScheduleTaskType taskType){
+    public void edit(MyScheduleTaskType taskType) throws Exception {
         ScheduleTaskType scheduleTaskType = init(taskType);
-        try {
-            ConsoleManager.getScheduleDataManager().updateBaseTaskType(scheduleTaskType);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+
+        ConsoleManager.getScheduleDataManager().updateBaseTaskType(scheduleTaskType);
+
     }
 
     /**
      * 删除任务
      * @return
      */
-    public String remove(String baseTaskType){
+    @RequestMapping("remove")
+    @ResponseBody
+    public AjaxResult remove(String baseTaskType){
 
         try {
             ConsoleManager.getScheduleDataManager().clearTaskType( baseTaskType);
         } catch (Exception e) {
             e.printStackTrace();
+            return AjaxResult.filed(500);
         }
-
-        return null;
+        return AjaxResult.sucess();
     }
 
-    public String puase(String baseTaskType){
+    @RequestMapping("puase")
+    @ResponseBody
+    public AjaxResult puase(String baseTaskType){
         try {
             ConsoleManager.getScheduleDataManager().pauseAllServer(baseTaskType);
         } catch (Exception e) {
             e.printStackTrace();
+            return AjaxResult.filed(500);
         }
-        return null;
+        return AjaxResult.sucess();
     }
 
-    public String resume(String baseTaskType){
+    @RequestMapping("resume")
+    @ResponseBody
+    public AjaxResult resume(String baseTaskType){
         try {
             ConsoleManager.getScheduleDataManager().resumeAllServer(baseTaskType);
         } catch (Exception e) {
             e.printStackTrace();
+            return AjaxResult.filed(500);
         }
-        return null;
+        return AjaxResult.sucess();
     }
 
     /**
@@ -95,7 +156,8 @@ public class TaskController {
      * @param ownSign
      * @return
      */
-    public String taskInfo(String baseTaskType,String ownSign){
+    @RequestMapping("taskInfo")
+    public String taskInfo(String baseTaskType,String ownSign,ModelMap mp){
         try {
             List<ScheduleTaskTypeRunningInfo> taskTypeRunningInfoList = ConsoleManager.getScheduleDataManager()
                     .getAllTaskTypeRunningInfo(baseTaskType);
@@ -130,13 +192,13 @@ public class TaskController {
                 myScheduleTaskTypeRunningInfos.add(myInfo);
             }
 
-            // TODO 添加返回值
+            mp.put("info",myScheduleTaskTypeRunningInfos);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return null;
+        return "/task/info";
     }
 
     private ScheduleTaskType init(MyScheduleTaskType taskType){

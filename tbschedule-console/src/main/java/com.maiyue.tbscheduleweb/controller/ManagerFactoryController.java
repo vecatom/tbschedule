@@ -3,11 +3,21 @@ package com.maiyue.tbscheduleweb.controller;
 import com.maiyue.tbscheduleweb.modul.MyManagerFactoryInfo;
 import com.taobao.pamirs.schedule.ConsoleManager;
 import com.taobao.pamirs.schedule.strategy.ManagerFactoryInfo;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Controller
+@RequestMapping("/managerFactory")
 public class ManagerFactoryController {
+
+    @RequestMapping("/list")
+    public String toPage(ModelMap mp){
+        return "/managerFactory/list";
+    }
 
     public List<MyManagerFactoryInfo> list(){
         List<ManagerFactoryInfo> list = null;
