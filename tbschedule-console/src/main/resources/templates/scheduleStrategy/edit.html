@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+    <link rel="stylesheet" th:href="@{/css/font.css}">
+    <link rel="stylesheet" th:href="@{/css/xadmin.css}">
+    <script type="text/javascript" th:src="@{/lib/layui/layui.js}" charset="utf-8"></script>
+    <script type="text/javascript" th:src="@{/js/xadmin.js}"></script>
+    <STYLE type=text/css>
+
+        TH {
+            color: #5371BA;
+            font-weight: bold;
+            font-size: 12px;
+            background-color: #E4EFF1;
+            display: block;
+        }
+
+        TD {
+            font-size: 12px;
+        }
+
+    </STYLE>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+<form id="scheduleStrategyForm" method="get" name="scheduleStrategyForm" th:object="${scheduleStrategy}">
+    <input name="editFlag" th:value="*{editFlag}" type="hidden" />
+    <table>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">策略名称:</td>
+            <td><input type="text" id="strategyName" name="strategyName"
+                th:value="*{strategyName}" width="30"></td>
+            <td>必须填写，不能有中文和特殊字符</td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">任务类型:</td>
+            <td><input type="text" id="kind" name="kind" th:value="*{kind}" width="30">
+            </td>
+            <td>可选类型：Schedule,Java,Bean 大小写敏感</td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">任务名称:</td>
+            <td><input type="text" id="taskName" name="taskName" th:value="*{taskName}" width="30">
+            </td>
+            <td>与任务类型匹配的名称例如：1、任务管理中配置的任务名称(对应Schedule) 2、Class名称(对应java) 3、Bean的名称(对应Bean)</td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">任务参数:</td>
+            <td><input type="text" id="taskParameter" name="taskParameter"
+                       th:value="*{taskParameter}" width="30"></td>
+            <td>逗号分隔的Key-Value。 对任务类型为Schedule的无效，需要通过任务管理来配置的</td>
+        </tr>
+
+        <tr class="layui-form-item">
+            <td class="layui-form-label">单JVM最大线程组数量:</td>
+            <td><input type="text" name="numOfSingleServer" th:value="*{numOfSingleServer}"
+                       width="30"></td>
+            <td>单JVM最大线程组数量，如果是0，则表示没有限制.每台机器运行的线程组数量 =总量/机器数</td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">最大线程组数量：</td>
+            <td><input type="text" name="assignNum" th:value="*{assignNum}" width="30"></td>
+            <td>所有服务器总共运行的最大数量</td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">IP地址(逗号分隔)：</td>
+            <td><input type="text" name="ips" th:value="*{ips}" width="30"></td>
+            <td>127.0.0.1或者localhost会在所有机器上运行</td>
+        </tr>
+    </table>
+    <br/>
+    <input type="button" value="保存" onclick="save();" style="width:100px">
+
+</form>
+    </div>
+</div>
+
+</body>
+</html>
+
+<script>
+    function save() {
+        var strategyName = document.all("strategyName").value;
+        var reg = /.*[\u4e00-\u9fa5]+.*$/;
+        if (reg.test(strategyName)) {
+            alert('任务类型不能含中文');
+            return;
+        }
+        if (strategyName == null || strategyName == '' || isContainSpace(strategyName)) {
+            alert('任务类型不能为空或存在空格');
+            return;
+        }
+        // document.getElementById("scheduleStrategyForm").submit();
+        var d = $("#scheduleStrategyForm").serialize();
+        $.post("/scheduleStrategy/save",d,function(r){
+            if(r.code==200){
+                alert(r.msg);
+                layer.close();
+            }else {
+                alert(r.msg);
+            }
+        },'json');
+    }
+
+    function isContainSpace(array) {
+        if (array.indexOf(' ') >= 0) {
+            return true;
+        }
+        return false;
+    }
+</script>

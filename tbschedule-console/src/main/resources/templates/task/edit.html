@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+    <link rel="stylesheet" th:href="@{/css/font.css}">
+    <link rel="stylesheet" th:href="@{/css/xadmin.css}">
+    <script type="text/javascript" th:src="@{/lib/layui/layui.js}" charset="utf-8"></script>
+    <script type="text/javascript" th:src="@{/js/xadmin.js}"></script>
+    <STYLE type=text/css>
+
+        TH {
+            color: #5371BA;
+            font-weight: bold;
+            font-size: 12px;
+            background-color: #E4EFF1;
+            display: block;
+        }
+
+        TD {
+            font-size: 12px;
+        }
+
+    </STYLE>
+</head>
+<body style="font-size:12px;">
+<div class="layui-fluid">
+    <div class="layui-row">
+<form id="taskTypeForm" method="get" class="layui-form" name="taskTypeForm" th:object="${taskType}">
+
+    <input type="hidden" name="editFlag" th:value="*{editFlag}"/>
+    <input type="hidden" name="sts" th:value="sts"/>
+
+    <table>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">任务名称:</td>
+            <td><input type="text" class="layui-input" id="taskType" name="baseTaskType" th:value="*{baseTaskType}"
+                width="30"></td>
+            <td class="layui-form-label">任务处理的SpringBean:</td>
+            <td><input type="text" class="layui-input" id="dealBean" name="dealBean" th:value="*{dealBeanName}" width="30">
+            </td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">心跳频率(秒):</td>
+            <td><input type="text" class="layui-input" name="heartBeatRate" th:value="*{heartBeatRate/1000.0}" width="30">
+            </td>
+            <td class="layui-form-label">假定服务死亡间隔(秒):</td>
+            <td><input type="text" class="layui-input" name="judgeDeadInterval" th:value="*{judgeDeadInterval/1000.0}"
+                       width="30"></td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">线程数：</td>
+            <td><input type="text" class="layui-input" name="threadNumber" th:value="*{threadNumber}" width="30"></td>
+            <td class="layui-form-label">处理模式：</td>
+            <td><input type="text" class="layui-input" name="processType" th:value="*{processorType}" width="30">
+                SLEEP 和 NOTSLEEP
+            </td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">每次获取数据量：</td>
+            <td><input type="text" class="layui-input" name="fetchNumber" th:value="*{fetchDataNumber}" width="30"></td>
+            <td class="layui-form-label">每次执行数量：</td>
+            <td><input type="text" class="layui-input" name="executeNumber" th:value="*{executeNumber}" width="30">
+                只在bean实现IScheduleTaskDealMulti才生效
+            </td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">没有数据时休眠时长(秒)：</td>
+            <td><input type="text" class="layui-input" name="sleepTimeNoData" th:value="*{sleepTimeNoData/1000.0}" width="30">
+            </td>
+            <td class="layui-form-label">每次处理完数据后休眠时间(秒)：</td>
+            <td><input type="text" class="layui-input" name="sleepTimeInterval" th:value="*{sleepTimeInterval/1000.0}"
+                       width="30"></td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">执行开始时间：</td>
+            <td><input type="text" class="layui-input" name="permitRunStartTime"
+                width="30" ></td>
+            <td class="layui-form-label">执行结束时间：</td>
+            <td><input type="text" class="layui-input" name="permitRunEndTime" >
+            </td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">单线程组最大任务项：</td>
+            <td><input type="text" class="layui-input" name="maxTaskItemsOfOneThreadGroup"
+                       th:value="*{maxTaskItemsOfOneThreadGroup}" width="30"></td>
+            <td class="layui-form-label">单次调度执行次数：</td>
+            <td><input type="text" class="layui-input" name="fetchDataCountEachSchedule" th:value="*{fetchDataCountEachSchedule}" width="30">
+                默认为-1，表示没有执行次数限制
+            </td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">自定义参数(字符串):</td>
+            <td colspan="3"><input type="text" class="layui-input" id="taskParameter" name="taskParameter" th:value="*{taskParameter}"
+                style="width:657"></td>
+        </tr>
+        <tr class="layui-form-item">
+            <td class="layui-form-label">任务项(","分隔):</td>
+            <td colspan="3"><TEXTAREA type="textarea" rows="5" class="layui-textarea" id="taskItems" name="taskItems" th:value="*{itemStr}"
+                                      style="width:657"> </TEXTAREA></td>
+        </tr>
+
+    </table>
+    <br/>
+    <input type="button" value="保存" onclick="save();" style="width:100px">
+
+</form>
+    </div>
+<b>执行开始时间说明：</b><br/>
+1.允许执行时段的开始时间crontab的时间格式.'0 * * * * ?' 表示在每分钟的0秒开始<br/>
+2.以startrun:开始，则表示开机立即启动调度.<br/>
+3.格式参见： http://dogstar.javaeye.com/blog/116130<br/><br/>
+<b>执行结束时间说明：</b><br/>
+1.允许执行时段的结束时间crontab的时间格式,'20 * * * * ?' 表示在每分钟的20秒终止<br/>
+2.如果不设置，表示取不到数据就停止 <br/>
+3.格式参见：http://dogstar.javaeye.com/blog/116130<br/><br/>
+<b>任务项的说明：</b><br/>
+1、将一个数据表中所有数据的ID按10取模，就将数据划分成了0、1、2、3、4、5、6、7、8、9供10个任务项。<br/>
+2、将一个目录下的所有文件按文件名称的首字母(不区分大小写)， 就划分成了A、B、C、D、E、F、G、H、I、J、K、L、M、N、O、P、Q、R、S、T、U、V、W、X、Y、Z供26个任务项。<br/>
+3、将一个数据表的数据ID哈希后按1000取模作为最后的HASHCODE,我们就可以将数据按[0,100)、[100,200) 、[200,300)、[300,400)
+、[400,500)、[500,600)、[600,700)、[700,800)、[800,900)、 [900,1000)划分为十个任务项，
+当然你也可以划分为100个任务项，最多是1000个项。<br/>
+4、任务项是进行任务分配的最小单位。一个任务队列只能由一个ScheduleServer来进行处理。但一个Server可以处理任意数量的任务项。
+</div>
+</body>
+</html>
+
+<script>
+    function save() {
+        var taskType = document.all("taskType").value;
+        var reg = /.*[\u4e00-\u9fa5]+.*$/;
+        if (reg.test(taskType)) {
+            alert('任务类型不能含中文');
+            return;
+        }
+        if (taskType == null || taskType == '' || isContainSpace(taskType)) {
+            alert('任务类型不能为空或存在空格');
+            return;
+        }
+        var str = document.all("dealBean").value;
+        if (str == null || str.length == 0) {
+            alert("请输入处理任务的bean名称！！");
+            return;
+        }
+        if (isContainSpace(str)) {
+            alert('处理任务的bean名称不能存在空格');
+            return;
+        }
+        if (reg.test(str)) {
+            alert('bean名称不能含中文');
+            return;
+        }
+        str = document.all("taskItems").value;
+        if (str == null || str.length == 0) {
+            alert("请输入任务项！！");
+            return;
+        }
+        var data = $("#taskTypeForm").serialize();
+        $.post('/task/save',data,function(r){
+            if(r.code==200){
+                alert(r.msg);
+                layer.close();
+            }else if(r.code==500){
+                alert(r.msg)
+            }
+        },'json');
+    }
+
+    function isContainSpace(array) {
+        if (array.indexOf(' ') >= 0) {
+            return true;
+        }
+        return false;
+    }
+</script>

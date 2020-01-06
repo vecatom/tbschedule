@@ -6,6 +6,8 @@ import java.util.Arrays;
 
 public class MyScheduleStrategy extends ScheduleStrategy {
 
+    private String editFlag;
+
     private String ips;
 
     public String getIps() {
@@ -13,7 +15,16 @@ public class MyScheduleStrategy extends ScheduleStrategy {
     }
 
     public void setIps(String ips) {
+
         this.ips = ips;
+    }
+
+    public String getEditFlag() {
+        return editFlag;
+    }
+
+    public void setEditFlag(String editFlag) {
+        this.editFlag = editFlag;
     }
 
     public void setIPListToIps() {
